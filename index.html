@@ -3,30 +3,169 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Мой миниапп</title>
+  <title>Конструктор презентации</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 16px; }
-    .wrap { max-width: 420px; margin: 0 auto; }
-    button { width: 100%; padding: 14px 16px; font-size: 16px; border-radius: 12px; border: 0; cursor: pointer; }
-    .primary { margin-top: 12px; }
+    :root{
+      --bg: #f5f5f7;
+      --card: #ffffff;
+      --text: #0b0b0b;
+      --muted: #eaeaec;
+      --accent: #FFBFDE; /* розовый при наведении */
+      --shadow: 0 6px 18px rgba(0,0,0,.08);
+    }
+    /* тёмная тема */
+    body[data-theme="dark"]{
+      --bg: #0f1115;
+      --card: #171a20;
+      --text: #f2f2f2;
+      --muted: #22262e;
+      --shadow: 0 6px 18px rgba(0,0,0,.35);
+    }
+
+    *{ box-sizing: border-box; }
+    html,body{ height:100% }
+    body{
+      margin:0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.35;
+    }
+
+    .page{
+      max-width: 460px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .header{
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 8px 0 12px;
+      background: var(--bg);
+      z-index: 10;
+    }
+
+    .theme-toggle{
+      appearance: none;
+      border: 1px solid var(--muted);
+      background: var(--card);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    .card{
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    h1{
+      margin: 0 0 16px;
+      font-size: 26px;
+      letter-spacing: -0.2px;
+    }
+
+    .stack{
+      display: grid;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .option{
+      width: 100%;
+      text-align: left;
+      background: var(--muted);
+      color: var(--text);
+      border: 0;
+      border-radius: 16px;
+      padding: 16px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background .15s ease, transform .04s ease;
+    }
+
+    /* наведение/фокус/нажатие — розовый */
+    .option:hover,
+    .option:focus-visible{ background: var(--accent); outline: none; }
+    .option:active{ transform: translateY(1px); background: var(--accent); }
+
+    /* выбранное состояние (если захочешь отмечать выбор) */
+    .option.is-selected{ background: var(--accent); }
+
+    /* мелкая подпись */
+    .hint{
+      opacity: .65;
+      font-size: 13px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Привет 👋</h1>
-    <p>Это тестовая мини-страница поверх Telegram.</p>
-    <button class="primary" onclick="Telegram.WebApp.close()">Закрыть страницу</button>
-    <button style="margin-top:8px" onclick="sendBack()">Отправить данные в бот и закрыть</button>
+  <div class="page">
+    <div class="header">
+      <button class="theme-toggle" id="themeToggle">🌞 / 🌚</button>
+    </div>
+
+    <div class="card">
+      <h1>Для чего собираешь<br/> презентацию?</h1>
+
+      <div class="stack" id="menu">
+        <button class="option">Питч-дек для потенциальных партнёров</button>
+        <button class="option">Комитет</button>
+        <button class="option">Хурал</button>
+        <button class="option">Другое</button>
+      </div>
+
+      <div class="hint">Нажми на вариант — он подсветится. Наведение и нажатие — розовым.</div>
+    </div>
   </div>
+
   <script>
-    Telegram.WebApp.ready();
-    Telegram.WebApp.expand?.();
-    function sendBack() {
-      const payload = { ok: true, when: new Date().toISOString() };
-      Telegram.WebApp.sendData(JSON.stringify(payload));
-      Telegram.WebApp.close();
-    }
+    // Telegram: готово и разворачиваем
+    Telegram?.WebApp?.ready?.();
+    Telegram?.WebApp?.expand?.();
+
+    // Инициализация темы: уважаем системную/телеграмовскую, затем локальное сохранение
+    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches;
+    const tgScheme = Telegram?.WebApp?.colorScheme; // "dark" | "light"
+    const saved = localStorage.getItem('theme');
+    const initialTheme =
+      saved || (tgScheme ? tgScheme : (prefersDark ? 'dark' : 'light'));
+    document.body.setAttribute('data-theme', initialTheme);
+
+    // Переключатель темы
+    const toggle = document.getElementById('themeToggle');
+    toggle.addEventListener('click', () => {
+      const now = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', now);
+      localStorage.setItem('theme', now);
+    });
+
+    // Логика подсветки выбранного пункта (по желанию)
+    const menu = document.getElementById('menu');
+    menu.addEventListener('click', (e) => {
+      const btn = e.target.closest('.option');
+      if (!btn) return;
+      // снимаем предыдущий выбор
+      menu.querySelectorAll('.option.is-selected').forEach(b => b.classList.remove('is-selected'));
+      // отмечаем текущий
+      btn.classList.add('is-selected');
+      // здесь можно отправить выбор боту, если понадобится:
+      // Telegram.WebApp.sendData(JSON.stringify({ purpose: btn.innerText.trim() }));
+      // Telegram.WebApp.close();
+    });
   </script>
 </body>
 </html>
