@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Конструктор презентации</title>
+  <title>Конструктор — A сценарий</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root{
@@ -11,105 +11,53 @@
       --card: #ffffff;
       --text: #0b0b0b;
       --muted: #eaeaec;
-      --accent: #FFBFDE; /* розовый при наведении */
+      --accent: #FFBFDE;
       --shadow: 0 6px 18px rgba(0,0,0,.08);
     }
-    /* тёмная тема */
     body[data-theme="dark"]{
-      --bg: #0f1115;
-      --card: #171a20;
-      --text: #f2f2f2;
-      --muted: #22262e;
+      --bg: #0f1115; --card:#171a20; --text:#f2f2f2; --muted:#22262e;
       --shadow: 0 6px 18px rgba(0,0,0,.35);
     }
-
-    *{ box-sizing: border-box; }
+    *{ box-sizing:border-box }
     html,body{ height:100% }
     body{
-      margin:0;
-      background: var(--bg);
-      color: var(--text);
+      margin:0; background:var(--bg); color:var(--text);
       font-family: system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
-      -webkit-font-smoothing: antialiased;
-      line-height: 1.35;
+      -webkit-font-smoothing:antialiased; line-height:1.35;
     }
-
-    .page{
-      max-width: 460px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-
+    .page{ max-width:460px; margin:0 auto; padding:16px }
     .header{
-      position: sticky;
-      top: 0;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
-      padding: 8px 0 12px;
-      background: var(--bg);
-      z-index: 10;
+      position:sticky; top:0; display:flex; justify-content:flex-end; gap:8px;
+      padding:8px 0 12px; background:var(--bg); z-index:10;
     }
-
     .theme-toggle{
-      appearance: none;
-      border: 1px solid var(--muted);
-      background: var(--card);
-      color: var(--text);
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: 14px;
-      cursor: pointer;
-      box-shadow: var(--shadow);
+      appearance:none; border:1px solid var(--muted); background:var(--card);
+      color:var(--text); padding:8px 12px; border-radius:999px; font-size:14px;
+      cursor:pointer; box-shadow:var(--shadow);
     }
-
-    .card{
-      background: var(--card);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-    }
-
-    h1{
-      margin: 0 0 16px;
-      font-size: 26px;
-      letter-spacing: -0.2px;
-    }
-
-    .stack{
-      display: grid;
-      gap: 14px;
-      margin-top: 12px;
-    }
-
+    .card{ background:var(--card); border-radius:16px; padding:20px; box-shadow:var(--shadow); }
+    h1{ margin:0 0 16px; font-size:26px; letter-spacing:-.2px }
+    .stack{ display:grid; gap:14px; margin-top:12px }
     .option{
-      width: 100%;
-      text-align: left;
-      background: var(--muted);
-      color: var(--text);
-      border: 0;
-      border-radius: 16px;
-      padding: 16px 18px;
-      font-size: 16px;
-      cursor: pointer;
+      width:100%; text-align:left; background:var(--muted); color:var(--text);
+      border:0; border-radius:16px; padding:16px 18px; font-size:16px; cursor:pointer;
       transition: background .15s ease, transform .04s ease;
     }
-
-    /* наведение/фокус/нажатие — розовый */
-    .option:hover,
-    .option:focus-visible{ background: var(--accent); outline: none; }
-    .option:active{ transform: translateY(1px); background: var(--accent); }
-
-    /* выбранное состояние (если захочешь отмечать выбор) */
-    .option.is-selected{ background: var(--accent); }
-
-    /* мелкая подпись */
-    .hint{
-      opacity: .65;
-      font-size: 13px;
-      margin-top: 10px;
+    .option:hover,.option:focus-visible{ background:var(--accent); outline:none }
+    .option:active{ transform:translateY(1px); background:var(--accent) }
+    .option.is-selected{ background:var(--accent) }
+    .row{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap }
+    .btn{
+      border:0; border-radius:999px; padding:12px 16px; font-size:14px; cursor:pointer;
     }
+    .btn-primary{ background:var(--accent); color:#000 }
+    .btn-ghost{ background:var(--muted); color:var(--text) }
+    .footer-row{ display:flex; justify-content:space-between; align-items:center; margin-top:16px }
+    .home, .back{ font-size:14px; border:0; background:transparent; cursor:pointer; color:var(--text); opacity:.8 }
+    .hint{ opacity:.65; font-size:13px; margin-top:10px }
+    [hidden]{ display:none !important }
+    .img-box{ display:flex; justify-content:center; margin:16px 0 8px }
+    .img-box img{ max-width:160px; height:auto }
   </style>
 </head>
 <body>
@@ -118,50 +66,154 @@
       <button class="theme-toggle" id="themeToggle">🌞 / 🌚</button>
     </div>
 
-    <div class="card">
-      <h1>Для чего собираешь<br/> презентацию?</h1>
+    <!-- Экран 1 — главный -->
+    <section class="card" data-screen="home">
+      <h1>Хочешь забрать заготовленный дек<br/>или собрать свой кастомный?</h1>
+      <div class="stack">
+        <button class="option" onclick="goReady()">Посмотреть готовые</button>
+        <button class="option" onclick="alert('Путь B (кастомный) добавим позже ✨')">Собрать свой</button>
+      </div>
+    </section>
 
-      <div class="stack" id="menu">
-        <button class="option">Питч-дек для потенциальных партнёров</button>
-        <button class="option">Комитет</button>
-        <button class="option">Хурал</button>
-        <button class="option">Другое</button>
+    <!-- Экран 3 — выбор задачи -->
+    <section class="card" data-screen="choose-task" hidden>
+      <h1>Для какой задачи собираешь презентацию?</h1>
+      <div class="stack" id="taskList">
+        <button class="option" onclick="pickTask('pitch')">Питч-дек для потенциальных партнёров</button>
+        <button class="option" onclick="pickTask('committee')">Комитет</button>
+        <button class="option" onclick="pickTask('mediakit')">Медиакит</button>
+      </div>
+      <div class="footer-row">
+        <button class="home" onclick="navigate('home')">🏠 Домой</button>
+        <span></span>
+      </div>
+    </section>
+
+    <!-- Экран 5 — выбор шаблона (контент зависит от task) -->
+    <section class="card" data-screen="choose-template" hidden>
+      <h1>В каком шаблоне хочешь забрать дек?</h1>
+      <div class="stack" id="tplList"></div>
+      <div class="footer-row">
+        <button class="home" onclick="navigate('home')">🏠 Домой</button>
+        <button class="back" onclick="navigate('choose-task')">⬅️ Вернуться назад</button>
+      </div>
+    </section>
+
+    <!-- Экран 7 — финал -->
+    <section class="card" data-screen="final" hidden>
+      <h1 id="finalTitle">Готово! Забери дек</h1>
+      <div class="img-box">
+        <img src="https://raw.githubusercontent.com/omnibrain-assets/public/main/kirby-cheer.png" alt="kirby cheer" />
+      </div>
+      <div class="row">
+        <button class="btn btn-primary" onclick="download()">Скачать</button>
+        <button class="btn btn-ghost" onclick="navigate('choose-template')">Вернуться назад</button>
+      </div>
+      <div class="footer-row">
+        <button class="home" onclick="navigate('home')">🏠 Домой</button>
+        <span></span>
+      </div>
+    </section>
+
+    <!-- Экран 5.2 — нет подходящего -->
+    <section class="card" data-screen="no-template" hidden>
+      <h1>К сожалению, в других шаблонах у нас пока нет структур :(</h1>
+      <p>Но мы постоянно развиваем сервис, так что можешь поделиться, какой шаблон тебе хотелось бы видеть?</p>
+      <div class="row">
+        <button class="btn btn-primary" onclick="openSupport()">Оставить фидбек</button>
+        <button class="btn btn-ghost" onclick="navigate('choose-template')">Вернуться назад</button>
+      </div>
+      <div class="footer-row">
+        <button class="home" onclick="navigate('home')">🏠 Домой</button>
+        <span></span>
+      </div>
+    </section>
   </div>
 
   <script>
-    // Telegram: готово и разворачиваем
-    Telegram?.WebApp?.ready?.();
-    Telegram?.WebApp?.expand?.();
+    // Telegram WebApp init
+    Telegram?.WebApp?.ready?.(); Telegram?.WebApp?.expand?.();
 
-    // Инициализация темы: уважаем системную/телеграмовскую, затем локальное сохранение
+    // Тема
     const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches;
-    const tgScheme = Telegram?.WebApp?.colorScheme; // "dark" | "light"
-    const saved = localStorage.getItem('theme');
-    const initialTheme =
-      saved || (tgScheme ? tgScheme : (prefersDark ? 'dark' : 'light'));
-    document.body.setAttribute('data-theme', initialTheme);
-
-    // Переключатель темы
-    const toggle = document.getElementById('themeToggle');
-    toggle.addEventListener('click', () => {
-      const now = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    const tgScheme = Telegram?.WebApp?.colorScheme;
+    const savedTheme = localStorage.getItem('theme');
+    document.body.setAttribute('data-theme', savedTheme || (tgScheme || (prefersDark?'dark':'light')));
+    document.getElementById('themeToggle').addEventListener('click', ()=>{
+      const now = document.body.getAttribute('data-theme')==='dark'?'light':'dark';
       document.body.setAttribute('data-theme', now);
       localStorage.setItem('theme', now);
     });
 
-    // Логика подсветки выбранного пункта (по желанию)
-    const menu = document.getElementById('menu');
-    menu.addEventListener('click', (e) => {
-      const btn = e.target.closest('.option');
-      if (!btn) return;
-      // снимаем предыдущий выбор
-      menu.querySelectorAll('.option.is-selected').forEach(b => b.classList.remove('is-selected'));
-      // отмечаем текущий
-      btn.classList.add('is-selected');
-      // здесь можно отправить выбор боту, если понадобится:
-      // Telegram.WebApp.sendData(JSON.stringify({ purpose: btn.innerText.trim() }));
+    // Навигация между экранами
+    function navigate(id){
+      document.querySelectorAll('[data-screen]').forEach(s=>s.hidden=true);
+      document.querySelector(`[data-screen="${id}"]`).hidden=false;
+      window.scrollTo({top:0, behavior:'instant'});
+    }
+
+    // Состояние сценария
+    const state = { task:null, template:null };
+
+    // Маппинг опций шаблонов по задачам
+    const templateMap = {
+      pitch:   ['eda','market','go','none'],
+      mediakit:['eda','go','none'],
+      committee:['market','eda','none']
+    };
+    const templateLabels = {
+      eda:'Еда', market:'Маркет', go:'Go', none:'Не нашёл подходящего'
+    };
+    const taskLabels = {
+      pitch:'Питч-дек', mediakit:'Медиакит', committee:'Комитет'
+    };
+
+    function goReady(){ navigate('choose-task'); }
+
+    function pickTask(task){
+      state.task = task; state.template = null;
+      renderTemplatesFor(task);
+      navigate('choose-template');
+    }
+
+    function renderTemplatesFor(task){
+      const list = document.getElementById('tplList');
+      list.innerHTML = '';
+      (templateMap[task]||[]).forEach(code=>{
+        const b = document.createElement('button');
+        b.className = 'option';
+        b.textContent = templateLabels[code];
+        b.onclick = ()=>pickTemplate(code);
+        list.appendChild(b);
+      });
+    }
+
+    function pickTemplate(code){
+      state.template = code;
+      if(code==='none'){ navigate('no-template'); return; }
+      // финальный заголовок
+      const tLabel = taskLabels[state.task] || 'дек';
+      const tplLabel = templateLabels[code] || '';
+      document.getElementById('finalTitle').textContent =
+        `Готово! Забери ${tLabel.toLowerCase()} в шаблоне «${tplLabel}»`;
+      navigate('final');
+    }
+
+    // Заглушка «Скачать»
+    function download(){
+      alert('Файл готов! (на этом этапе просто заглушка)');
+      // Когда подключишь настоящую отдачу:
+      // Telegram.WebApp.sendData(JSON.stringify({
+      //   action:'download', task: state.task, template: state.template
+      // }));
       // Telegram.WebApp.close();
-    });
+      // или открытие прямой ссылки:
+      // Telegram.WebApp.openLink('https://example.com/file.zip');
+    }
+
+    function openSupport(){
+      Telegram?.WebApp?.openTelegramLink?.('https://t.me/viscomms_support'); // замени на ваш @
+    }
   </script>
 </body>
 </html>
