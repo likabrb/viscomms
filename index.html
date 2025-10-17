@@ -175,6 +175,8 @@
       menu.querySelectorAll('.option.is-selected').forEach(b => b.classList.remove('is-selected'));
       // отмечаем текущий
       btn.classList.add('is-selected');
+      // переход на конструктор
+      window.location.href = 'constructor.html';
 
       // сюда подставим интеграцию с ботом позже:
       // Telegram.WebApp.sendData(JSON.stringify({ template: btn.dataset.template }));
