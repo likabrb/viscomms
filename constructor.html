@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Конструктор — тест 3 слайда</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{--bg:#f5f5f7;--card:#fff;--text:#0b0b0b;--muted:#eaeaec;--accent:#FFBFDE;--shadow:0 6px 18px rgba(0,0,0,.08)}
+  body[data-theme="dark"]{--bg:#0f1115;--card:#171a20;--text:#f2f2f2;--muted:#22262e;--shadow:0 6px 18px rgba(0,0,0,.35)}
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;line-height:1.35}
+  .page{max-width:460px;margin:0 auto;padding:16px 16px 96px}
+  .h1{font-size:26px;font-weight:800;margin:0 0 16px}
+  .p{margin:6px 0 18px;opacity:.9}
+  .section{background:var(--card);border-radius:16px;box-shadow:var(--shadow);margin:12px 0;overflow:hidden}
+  .section-header{display:flex;align-items:center;justify-content:space-between;padding:16px;cursor:pointer;border-bottom:1px solid var(--muted)}
+  .section-title{font-size:18px;font-weight:700}
+  .chev{transition:transform .2s ease}.section.is-open .chev{transform:rotate(180deg)}
+  .section-body{display:none;padding:12px}.section.is-open .section-body{display:block}
+  .note{font-size:14px;opacity:.8;margin:4px 4px 10px}
+  .grid{display:grid;grid-template-columns:1fr;gap:12px}
+  .slide{display:flex;gap:12px;align-items:flex-start;background:var(--muted);border-radius:14px;padding:10px}
+  .thumb{width:120px;height:72px;border-radius:10px;background:#ddd center/cover no-repeat;flex:0 0 120px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.05)}
+  .meta{flex:1}.meta .name{font-weight:700;margin:2px 0 6px}.meta .desc{font-size:13px;opacity:.85}
+  .check{appearance:none;outline:none;cursor:pointer;width:22px;height:22px;border:2px solid #00000022;border-radius:6px;background:#fff;display:grid;place-items:center;flex:0 0 22px;margin-top:2px}
+  .check::after{content:"";width:12px;height:12px;border-radius:50%;background:transparent;transition:background .15s ease}
+  .check:checked{border-color:#00000033}.check:checked::after{background:#f6b3d0}
+  .footer{position:fixed;left:0;right:0;bottom:0;background:var(--bg);padding:12px 16px 20px;border-top:1px solid var(--muted)}
+  .cta{width:100%;border:0;border-radius:999px;padding:16px 20px;background:var(--accent);color:#261a21;font-size:16px;font-weight:700;box-shadow:var(--shadow);cursor:pointer}
+  .cta[disabled]{opacity:.5;cursor:not-allowed}
+  .count{font-size:13px;opacity:.75;margin-top:6px;text-align:center}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="h1">Выбирай нужные разделы, а затем слайды</div>
+  <div class="p">Тест на 3 слайда. Превью без картинок — рисуем плейсхолдеры.</div>
+  <div id="sections"></div>
+</div>
+
+<div class="footer">
+  <button class="cta" id="downloadBtn" disabled>Готово! Скачать дек</button>
+  <div class="count" id="countLabel">Ничего не выбрано</div>
+</div>
+
+<script>
+Telegram?.WebApp?.ready?.(); Telegram?.WebApp?.expand?.();
+(function initTheme(){const p=matchMedia?.('(prefers-color-scheme: dark)').matches;const t=Telegram?.WebApp?.colorScheme;const s=localStorage.getItem('theme');document.body.setAttribute('data-theme', s||(t?t:(p?'dark':'light')));})();
+
+// === ТЕСТОВЫЕ ДАННЫЕ ===
+const TEMPLATE = {
+  template:"test",
+  master:"test_master.pptx", // положи файл на сервер рядом с ботом
+  sections:[
+    { key:"cover", title:"Обложка", note:"Выбери один вариант", type:"single",
+      slides:[ {id:"s1", name:"Классическая обложка", slideNo:1, desc:"Заголовок + автор"} ] },
+    { key:"problem", title:"Проблема", note:"Сформулируем боль", type:"multi",
+      slides:[ {id:"s2", name:"Короткая проблема", slideNo:2, desc:"1 тезис"} ] },
+    { key:"solution", title:"Решение", note:"Как закрываем боль", type:"multi",
+      slides:[ {id:"s3", name:"Схема решения", slideNo:3, desc:"3–5 блоков"} ] }
+  ]
+};
+
+// Плейсхолдер, если нет thumb: SVG с номером
+function placeholderDataURL(n){
+  const svg = encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='240' height='144'>
+      <defs>
+        <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+          <stop offset='0' stop-color='#ffe2f0'/><stop offset='1' stop-color='#d9e7ff'/>
+        </linearGradient>
+      </defs>
+      <rect width='100%' height='100%' rx='12' fill='url(#g)'/>
+      <text x='50%' y='52%' text-anchor='middle' font-family='Inter, Arial, sans-serif'
+            font-size='28' font-weight='800' fill='#262626'>Слайд ${n}</text>
+    </svg>`);
+  return `url("data:image/svg+xml,${svg}")`;
+}
+
+const state = { selected:new Set(), single:{} };
+const $sections = document.getElementById('sections');
+const $btn = document.getElementById('downloadBtn');
+const $count = document.getElementById('countLabel');
+
+function render(){
+  $sections.innerHTML = '';
+  TEMPLATE.sections.forEach(sec=>{
+    const wrap = document.createElement('div'); wrap.className='section';
+    const head = document.createElement('div'); head.className='section-header';
+    head.innerHTML = `<div class="section-title">${sec.title}</div><div class="chev">▴</div>`;
+    head.addEventListener('click',()=>wrap.classList.toggle('is-open'));
+    wrap.appendChild(head);
+
+    const body = document.createElement('div'); body.className='section-body';
+    body.innerHTML = sec.note ? `<div class="note">${sec.note}</div>` : '';
+    const grid = document.createElement('div'); grid.className='grid';
+
+    sec.slides.forEach(sl=>{
+      const row = document.createElement('div'); row.className='slide';
+      const check = document.createElement('input'); check.type='checkbox'; check.className='check';
+      check.dataset.slideNo = sl.slideNo;
+
+      check.addEventListener('change', ()=>{
+        const n = +sl.slideNo;
+        if(sec.type==='single'){
+          if(state.single[sec.key] && state.single[sec.key]!==n){
+            state.selected.delete(state.single[sec.key]);
+            row.parentElement.querySelectorAll('.check').forEach(ch=>{
+              if(+ch.dataset.slideNo!==n) ch.checked=false;
+            });
+          }
+          if(check.checked){ state.selected.add(n); state.single[sec.key]=n; }
+          else { state.selected.delete(n); delete state.single[sec.key]; }
+        } else {
+          if(check.checked) state.selected.add(n); else state.selected.delete(n);
+        }
+        updateFooter();
+      });
+
+      const thumb = document.createElement('div'); thumb.className='thumb';
+      thumb.style.backgroundImage = placeholderDataURL(sl.slideNo); // <- фолбэк
+
+      const meta = document.createElement('div'); meta.className='meta';
+      meta.innerHTML = `<div class="name">${sl.name}</div><div class="desc">${sl.desc||''}</div>`;
+
+      row.appendChild(check); row.appendChild(thumb); row.appendChild(meta);
+      grid.appendChild(row);
+    });
+
+    body.appendChild(grid); wrap.appendChild(body); $sections.appendChild(wrap);
+  });
+  const first = $sections.querySelector('.section'); if(first) first.classList.add('is-open');
+  updateFooter();
+}
+
+function updateFooter(){
+  const c = state.selected.size;
+  $btn.disabled = c===0; $count.textContent = c?`Выбрано слайдов: ${c}`:'Ничего не выбрано';
+}
+render();
+
+$btn.addEventListener('click', ()=>{
+  const payload = {
+    action:"build_deck",
+    template:TEMPLATE.template,
+    master:TEMPLATE.master,
+    slides:Array.from(state.selected).sort((a,b)=>a-b)
+  };
+  Telegram?.WebApp?.sendData?.(JSON.stringify(payload));
+  // Telegram?.WebApp?.close?.();
+});
+</script>
+</body>
+</html>
