@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Конструктор — тест 3 слайда</title>
+<title>Конструктор — выбор слайдов</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-  :root{--bg:#f5f5f7;--card:#fff;--text:#0b0b0b;--muted:#eaeaec;--accent:#FFBFDE;--shadow:0 6px 18px rgba(0,0,0,.08)}
+  :root{--bg:#f5f5f7;--card:#fff;--text:#0b0b0b;--muted:#eaeaec;--accent:#FFBFDE;--shadow:0 6px 18px rgba(0,0,0,.08);--pink:#f6b3d0}
   body[data-theme="dark"]{--bg:#0f1115;--card:#171a20;--text:#f2f2f2;--muted:#22262e;--shadow:0 6px 18px rgba(0,0,0,.35)}
   *{box-sizing:border-box} html,body{height:100%}
   body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;line-height:1.35}
   .page{max-width:460px;margin:0 auto;padding:16px 16px 96px}
-  .h1{font-size:26px;font-weight:800;margin:0 0 16px}
+  .h1{font-size:26px;font-weight:800;margin:0 0 6px;letter-spacing:-.2px}
   .p{margin:6px 0 18px;opacity:.9}
   .section{background:var(--card);border-radius:16px;box-shadow:var(--shadow);margin:12px 0;overflow:hidden}
   .section-header{display:flex;align-items:center;justify-content:space-between;padding:16px;cursor:pointer;border-bottom:1px solid var(--muted)}
@@ -25,7 +25,7 @@
   .meta{flex:1}.meta .name{font-weight:700;margin:2px 0 6px}.meta .desc{font-size:13px;opacity:.85}
   .check{appearance:none;outline:none;cursor:pointer;width:22px;height:22px;border:2px solid #00000022;border-radius:6px;background:#fff;display:grid;place-items:center;flex:0 0 22px;margin-top:2px}
   .check::after{content:"";width:12px;height:12px;border-radius:50%;background:transparent;transition:background .15s ease}
-  .check:checked{border-color:#00000033}.check:checked::after{background:#f6b3d0}
+  .check:checked{border-color:#00000033}.check:checked::after{background:var(--pink)}
   .footer{position:fixed;left:0;right:0;bottom:0;background:var(--bg);padding:12px 16px 20px;border-top:1px solid var(--muted)}
   .cta{width:100%;border:0;border-radius:999px;padding:16px 20px;background:var(--accent);color:#261a21;font-size:16px;font-weight:700;box-shadow:var(--shadow);cursor:pointer}
   .cta[disabled]{opacity:.5;cursor:not-allowed}
@@ -35,7 +35,7 @@
 <body>
 <div class="page">
   <div class="h1">Выбирай нужные разделы, а затем слайды</div>
-  <div class="p">Тест на 3 слайда. Превью без картинок — рисуем плейсхолдеры.</div>
+  <div class="p">Отметь обложку и нужные блоки — потом соберём готовый .pptx.</div>
   <div id="sections"></div>
 </div>
 
@@ -46,37 +46,67 @@
 
 <script>
 Telegram?.WebApp?.ready?.(); Telegram?.WebApp?.expand?.();
-(function initTheme(){const p=matchMedia?.('(prefers-color-scheme: dark)').matches;const t=Telegram?.WebApp?.colorScheme;const s=localStorage.getItem('theme');document.body.setAttribute('data-theme', s||(t?t:(p?'dark':'light')));})();
+(function initTheme(){
+  const p=matchMedia?.('(prefers-color-scheme: dark)').matches;
+  const t=Telegram?.WebApp?.colorScheme;
+  const s=localStorage.getItem('theme');
+  document.body.setAttribute('data-theme', s||(t?t:(p?'dark':'light')));
+})();
 
-// === ТЕСТОВЫЕ ДАННЫЕ ===
-const TEMPLATE = {
-  template:"test",
-  master:"test_master.pptx", // положи файл на сервер рядом с ботом
-  sections:[
-    { key:"cover", title:"Обложка", note:"Выбери один вариант", type:"single",
-      slides:[ {id:"s1", name:"Классическая обложка", slideNo:1, desc:"Заголовок + автор"} ] },
-    { key:"problem", title:"Проблема", note:"Сформулируем боль", type:"multi",
-      slides:[ {id:"s2", name:"Короткая проблема", slideNo:2, desc:"1 тезис"} ] },
-    { key:"solution", title:"Решение", note:"Как закрываем боль", type:"multi",
-      slides:[ {id:"s3", name:"Схема решения", slideNo:3, desc:"3–5 блоков"} ] }
-  ]
-};
-
-// Плейсхолдер, если нет thumb: SVG с номером
-function placeholderDataURL(n){
+// красивый плейсхолдер, если thumb не загрузится
+function placeholderURL(n){
   const svg = encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='240' height='144'>
-      <defs>
-        <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-          <stop offset='0' stop-color='#ffe2f0'/><stop offset='1' stop-color='#d9e7ff'/>
-        </linearGradient>
-      </defs>
-      <rect width='100%' height='100%' rx='12' fill='url(#g)'/>
-      <text x='50%' y='52%' text-anchor='middle' font-family='Inter, Arial, sans-serif'
-            font-size='28' font-weight='800' fill='#262626'>Слайд ${n}</text>
-    </svg>`);
+`<svg xmlns='http://www.w3.org/2000/svg' width='240' height='144'>
+  <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+    <stop offset='0' stop-color='#ffe2f0'/><stop offset='1' stop-color='#d9e7ff'/></linearGradient></defs>
+  <rect width='100%' height='100%' rx='12' fill='url(#g)'/>
+  <text x='50%' y='52%' text-anchor='middle' font-family='Inter, Arial, sans-serif'
+        font-size='28' font-weight='800' fill='#262626'>Слайд ${n}</text>
+</svg>`);
   return `url("data:image/svg+xml,${svg}")`;
 }
+
+// код шаблона (food по умолчанию)
+const templateCode = new URLSearchParams(location.search).get('t') || 'food';
+
+const ya = (code, name) => `https://downloader.disk.yandex.ru/disk/${code}?filename=${encodeURIComponent(name)}`;
+
+const TEMPLATE_MAP = {
+  food: {
+    serviceName: "Еда",
+    master: "eda_master.pptx",
+    sections: [
+      { key:"cover", title:"Обложка", note:"Выбери один вариант", type:"single",
+        slides:[
+          {id:"cov1", name:"Обложка — вариант 1", slideNo:1, thumb: ya("77bYHAhhQevPsQ","slide01.png"), desc:"Заголовок + подтитр"},
+          {id:"cov2", name:"Обложка — вариант 2", slideNo:2, thumb: ya("CSUcyIopulXudw","slide02.png"), desc:"Три строки"},
+          {id:"cov3", name:"Обложка — вариант 3", slideNo:3, thumb: ya("xv7rW4jZWiYqNA","slide03.png"), desc:"Крупный визуал"}
+        ]},
+      { key:"problem", title:"Проблема", note:"Сформулируй боль аудитории", type:"multi",
+        slides:[
+          {id:"pr1", name:"Короткая формулировка", slideNo:4, thumb: ya("mYxupznfDWd99A","slide04.png"), desc:"Один тезис"},
+          {id:"pr2", name:"Факты и цифры",       slideNo:5, thumb: ya("C7VULfUUA1bu7g","slide05.png"), desc:"До трёх пунктов"},
+          {id:"pr3", name:"Иллюстрация боли",    slideNo:6, thumb: ya("hESVz6nLevwrJA","slide06.png"), desc:"Графика/пример"}
+        ]},
+      { key:"solution", title:"Решение", note:"Как закрываем боль", type:"multi",
+        slides:[
+          {id:"sol1", name:"Карта решения",      slideNo:7,  thumb: ya("FqilmWrgtJbvMg","slide07.png"), desc:"3–5 блоков"},
+          {id:"sol2", name:"Пример интерфейса",  slideNo:8,  thumb: ya("NmBarajdVOp69w","slide08.png"), desc:"Скрин/макет"},
+          {id:"sol3", name:"Процесс",            slideNo:9,  thumb: ya("jgBBgH1SS9ppvw","slide09.png"), desc:"Шаги 1–4"}
+        ]},
+      { key:"arguments", title:"Аргументы", note:"Доказательства и социальное доказательство", type:"multi",
+        slides:[
+          {id:"arg1", name:"Преимущества",       slideNo:10, thumb: ya("oMZT-xi1ij3V2w","slide10.png"), desc:"Список выгод"},
+          {id:"arg2", name:"Кейс",               slideNo:11, thumb: ya("ZMAegag5Lgus_g","slide11.png"), desc:"Задача → Результат"},
+          {id:"arg3", name:"Отзывы/Логотипы",    slideNo:12, thumb: ya("krTjU0mcI1fuZg","slide12.png"), desc:"Соцдоказательство"}
+        ]}
+    ]
+  },
+  market: { serviceName:"Маркет", master:"market_master.pptx", sections: [] },
+  go:     { serviceName:"Go",     master:"go_master.pptx",     sections: [] }
+};
+
+const model = TEMPLATE_MAP[templateCode] || TEMPLATE_MAP.food;
 
 const state = { selected:new Set(), single:{} };
 const $sections = document.getElementById('sections');
@@ -85,7 +115,7 @@ const $count = document.getElementById('countLabel');
 
 function render(){
   $sections.innerHTML = '';
-  TEMPLATE.sections.forEach(sec=>{
+  model.sections.forEach(sec=>{
     const wrap = document.createElement('div'); wrap.className='section';
     const head = document.createElement('div'); head.className='section-header';
     head.innerHTML = `<div class="section-title">${sec.title}</div><div class="chev">▴</div>`;
@@ -98,6 +128,7 @@ function render(){
 
     sec.slides.forEach(sl=>{
       const row = document.createElement('div'); row.className='slide';
+
       const check = document.createElement('input'); check.type='checkbox'; check.className='check';
       check.dataset.slideNo = sl.slideNo;
 
@@ -106,7 +137,7 @@ function render(){
         if(sec.type==='single'){
           if(state.single[sec.key] && state.single[sec.key]!==n){
             state.selected.delete(state.single[sec.key]);
-            row.parentElement.querySelectorAll('.check').forEach(ch=>{
+            grid.querySelectorAll('.check').forEach(ch=>{
               if(+ch.dataset.slideNo!==n) ch.checked=false;
             });
           }
@@ -119,7 +150,10 @@ function render(){
       });
 
       const thumb = document.createElement('div'); thumb.className='thumb';
-      thumb.style.backgroundImage = placeholderDataURL(sl.slideNo); // <- фолбэк
+      const img = new Image();
+      img.onload = ()=>{ thumb.style.backgroundImage = `url('${sl.thumb}')`; };
+      img.onerror = ()=>{ thumb.style.backgroundImage = placeholderURL(sl.slideNo); };
+      img.src = sl.thumb;
 
       const meta = document.createElement('div'); meta.className='meta';
       meta.innerHTML = `<div class="name">${sl.name}</div><div class="desc">${sl.desc||''}</div>`;
@@ -130,6 +164,7 @@ function render(){
 
     body.appendChild(grid); wrap.appendChild(body); $sections.appendChild(wrap);
   });
+
   const first = $sections.querySelector('.section'); if(first) first.classList.add('is-open');
   updateFooter();
 }
@@ -138,17 +173,35 @@ function updateFooter(){
   const c = state.selected.size;
   $btn.disabled = c===0; $count.textContent = c?`Выбрано слайдов: ${c}`:'Ничего не выбрано';
 }
+
 render();
+
+function fmtDate(d=new Date()){
+  const pad=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
 
 $btn.addEventListener('click', ()=>{
   const payload = {
     action:"build_deck",
-    template:TEMPLATE.template,
-    master:TEMPLATE.master,
-    slides:Array.from(state.selected).sort((a,b)=>a-b)
+    template: templateCode,
+    service: model.serviceName,
+    master: model.master,
+    slides: Array.from(state.selected).sort((a,b)=>a-b)
   };
-  Telegram?.WebApp?.sendData?.(JSON.stringify(payload));
-  // Telegram?.WebApp?.close?.();
+
+  if (Telegram?.WebApp?.sendData) {
+    Telegram.WebApp.sendData(JSON.stringify(payload));
+    // Telegram.WebApp.close();
+  } else {
+    // офлайн-проверка: скачиваем JSON с выбором
+    const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${model.serviceName}_${fmtDate()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
 });
 </script>
 </body>
