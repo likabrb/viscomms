@@ -53,7 +53,6 @@ Telegram?.WebApp?.ready?.(); Telegram?.WebApp?.expand?.();
   document.body.setAttribute('data-theme', s||(t?t:(p?'dark':'light')));
 })();
 
-// красивый плейсхолдер, если thumb не загрузится
 function placeholderURL(n){
   const svg = encodeURIComponent(
 `<svg xmlns='http://www.w3.org/2000/svg' width='240' height='144'>
@@ -66,10 +65,7 @@ function placeholderURL(n){
   return `url("data:image/svg+xml,${svg}")`;
 }
 
-// код шаблона (food по умолчанию)
-const templateCode = new URLSearchParams(location.search).get('t') || 'food';
-
-const ya = (code, name) => `https://downloader.disk.yandex.ru/disk/${code}?filename=${encodeURIComponent(name)}`;
+const ASSET_BASE = "https://raw.githubusercontent.com/likabrb/viscomms/main/thumbs/eda";
 
 const TEMPLATE_MAP = {
   food: {
@@ -78,36 +74,33 @@ const TEMPLATE_MAP = {
     sections: [
       { key:"cover", title:"Обложка", note:"Выбери один вариант", type:"single",
         slides:[
-          {id:"cov1", name:"Обложка — вариант 1", slideNo:1, thumb: ya("77bYHAhhQevPsQ","slide01.png"), desc:"Заголовок + подтитр"},
-          {id:"cov2", name:"Обложка — вариант 2", slideNo:2, thumb: ya("CSUcyIopulXudw","slide02.png"), desc:"Три строки"},
-          {id:"cov3", name:"Обложка — вариант 3", slideNo:3, thumb: ya("xv7rW4jZWiYqNA","slide03.png"), desc:"Крупный визуал"}
+          {id:"cov1", name:"Обложка — вариант 1", slideNo:1, thumb:`${ASSET_BASE}/Slide01.png`, desc:"Заголовок + подтитр"},
+          {id:"cov2", name:"Обложка — вариант 2", slideNo:2, thumb:`${ASSET_BASE}/Slide02.png`, desc:"Три строки"},
+          {id:"cov3", name:"Обложка — вариант 3", slideNo:3, thumb:`${ASSET_BASE}/Slide03.png`, desc:"Крупный визуал"}
         ]},
       { key:"problem", title:"Проблема", note:"Сформулируй боль аудитории", type:"multi",
         slides:[
-          {id:"pr1", name:"Короткая формулировка", slideNo:4, thumb: ya("mYxupznfDWd99A","slide04.png"), desc:"Один тезис"},
-          {id:"pr2", name:"Факты и цифры",       slideNo:5, thumb: ya("C7VULfUUA1bu7g","slide05.png"), desc:"До трёх пунктов"},
-          {id:"pr3", name:"Иллюстрация боли",    slideNo:6, thumb: ya("hESVz6nLevwrJA","slide06.png"), desc:"Графика/пример"}
+          {id:"pr1", name:"Короткая формулировка", slideNo:4, thumb:`${ASSET_BASE}/Slide04.png`, desc:"Один тезис"},
+          {id:"pr2", name:"Факты и цифры",       slideNo:5, thumb:`${ASSET_BASE}/Slide05.png`, desc:"До трёх пунктов"},
+          {id:"pr3", name:"Иллюстрация боли",    slideNo:6, thumb:`${ASSET_BASE}/Slide06.png`, desc:"Графика/пример"}
         ]},
       { key:"solution", title:"Решение", note:"Как закрываем боль", type:"multi",
         slides:[
-          {id:"sol1", name:"Карта решения",      slideNo:7,  thumb: ya("FqilmWrgtJbvMg","slide07.png"), desc:"3–5 блоков"},
-          {id:"sol2", name:"Пример интерфейса",  slideNo:8,  thumb: ya("NmBarajdVOp69w","slide08.png"), desc:"Скрин/макет"},
-          {id:"sol3", name:"Процесс",            slideNo:9,  thumb: ya("jgBBgH1SS9ppvw","slide09.png"), desc:"Шаги 1–4"}
+          {id:"sol1", name:"Карта решения",      slideNo:7,  thumb:`${ASSET_BASE}/Slide07.png`, desc:"3–5 блоков"},
+          {id:"sol2", name:"Пример интерфейса",  slideNo:8,  thumb:`${ASSET_BASE}/Slide08.png`, desc:"Скрин/макет"},
+          {id:"sol3", name:"Процесс",            slideNo:9,  thumb:`${ASSET_BASE}/Slide09.png`, desc:"Шаги 1–4"}
         ]},
       { key:"arguments", title:"Аргументы", note:"Доказательства и социальное доказательство", type:"multi",
         slides:[
-          {id:"arg1", name:"Преимущества",       slideNo:10, thumb: ya("oMZT-xi1ij3V2w","slide10.png"), desc:"Список выгод"},
-          {id:"arg2", name:"Кейс",               slideNo:11, thumb: ya("ZMAegag5Lgus_g","slide11.png"), desc:"Задача → Результат"},
-          {id:"arg3", name:"Отзывы/Логотипы",    slideNo:12, thumb: ya("krTjU0mcI1fuZg","slide12.png"), desc:"Соцдоказательство"}
+          {id:"arg1", name:"Преимущества",       slideNo:10, thumb:`${ASSET_BASE}/Slide10.png`, desc:"Список выгод"},
+          {id:"arg2", name:"Кейс",               slideNo:11, thumb:`${ASSET_BASE}/Slide11.png`, desc:"Задача → Результат"},
+          {id:"arg3", name:"Отзывы/Логотипы",    slideNo:12, thumb:`${ASSET_BASE}/Slide12.png`, desc:"Соцдоказательство"}
         ]}
     ]
-  },
-  market: { serviceName:"Маркет", master:"market_master.pptx", sections: [] },
-  go:     { serviceName:"Go",     master:"go_master.pptx",     sections: [] }
+  }
 };
 
-const model = TEMPLATE_MAP[templateCode] || TEMPLATE_MAP.food;
-
+const model = TEMPLATE_MAP.food;
 const state = { selected:new Set(), single:{} };
 const $sections = document.getElementById('sections');
 const $btn = document.getElementById('downloadBtn');
@@ -184,7 +177,7 @@ function fmtDate(d=new Date()){
 $btn.addEventListener('click', ()=>{
   const payload = {
     action:"build_deck",
-    template: templateCode,
+    template: "food",
     service: model.serviceName,
     master: model.master,
     slides: Array.from(state.selected).sort((a,b)=>a-b)
@@ -192,9 +185,7 @@ $btn.addEventListener('click', ()=>{
 
   if (Telegram?.WebApp?.sendData) {
     Telegram.WebApp.sendData(JSON.stringify(payload));
-    // Telegram.WebApp.close();
   } else {
-    // офлайн-проверка: скачиваем JSON с выбором
     const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
